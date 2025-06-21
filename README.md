@@ -79,7 +79,7 @@ Contribuições são o que tornam a comunidade de código aberto um lugar incrí
 4. Faça o *Push* para a *Branch*(``git push origin feature/FuncionabilidadeIncrivel``);
 5. Abra um *Pull Request*
 
-📜## Licença
+## 📜 Licença
 Distruibuido sob a Licença MIT. veja ``LICENSE.txt`` para mais informações.
 
 __Desenvolvido por Victor Hugo Santos__
