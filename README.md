@@ -16,6 +16,8 @@ O __SIA__ (Sistema de Inteligência e Análise) foi criado para centralizar a ve
 
 * __Análise de URL:__ Verifica se a URL consta em dezenas de motores de antivírus e serviços de blocklist.
 
+*__Análise de Hash:__ Verifica os hashes dos arquivos em dezenas de motores de antivírus.
+
 * __Interface Interativa:__ Um menu simples e intuitivo para guiar o usuário.
 
 * __Estrutura Modular:__ Código organizado e pronto para ser expandido com novas fontes de inteligência.
@@ -46,7 +48,7 @@ source .venv/bin/activate
 
 # Para Windows
 python -m venv .venv
-.\.venv\Scriptsctivate
+.\.venv\Scripts\activate
 ```
 
 3. Instale as dependências: 
