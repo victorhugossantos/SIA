@@ -10,7 +10,8 @@ def main_menu(api_keys):
         print("  1. Verificar Reputação de IP")
         print("  2. Verificar Reputação de URL")
         print("  3. Verificar Reputação de Hash de Arquivo")
-        print("  4. Sair")
+        print("  4. Verificar Reputação de Domínio")
+        print("  5. Sair")
 
         escolha = input("Opção: ").strip()
 
@@ -31,6 +32,10 @@ def main_menu(api_keys):
             report = virustotal_checker.check_hash_reputation(api_keys['virustotal'], hash_to_check)
             virustotal_checker.display_hash_report(report)
         elif escolha == '4':
+            domain_to_check = input("\nInsira o Dominio para verificar: ").strip()
+            report = virustotal_checker.check_domain_reputation(api_keys['virustotal'], domain_to_check)
+            virustotal_checker.display_domain_report(report)
+        elif escolha == '5':
             print("[INFO] Encerrando o programa. Até logo!")
             break
 

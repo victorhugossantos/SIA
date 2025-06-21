@@ -29,7 +29,7 @@ def check_url_reputation(api_key, url_to_check):
     except requests.exceptions.HTTPError as http_error:
         print(f'[ERRO HTTP] {http_error}')
     except requests.exceptions.RequestException as req_error:
-        print(f"[ERRO DE OCNEXAO] {req_error}")
+        print(f"[ERRO DE CONEXÃO] {req_error}")
     return None
 
 def display_url_report(report_data):
@@ -118,3 +118,56 @@ def display_hash_report(report_data):
             for name in list(detected_names)[:5]: # mostra até os 5 nomes diferente
                 print(f"    - {name}")
 print("----------------------------------------")
+
+# --- Função de Verificação de Dominio
+
+def check_domain_reputation(api_key, domain):
+    """Consulta a API do VirusToal para obter a reputação de um dominio."""
+    print(f"\n[INFO] Consultando o Domínio: {domain}...")
+
+    url = f'https://www.virustotal.com/api/v3/domains/{domain}'
+    headers = {'x-apikey': api_key}
+
+    try: 
+        response = requests.get(url, headers=headers)
+        if response.status_code == 404:
+            return None # Dominio não entrando no virustotal
+        response.raise_for_status()
+        return response.json().get('data', {}).get('attributes', {})
+    except requests.exceptions.HTTPError as http_err:
+        print(f"[ERRO HTTP] {http_err}")
+    except requests.exceptions.RequestException as req_err:
+        print(f"[ERRO DE CONEXÃO] {req_err}")
+    return None
+
+def display_domain_report(report_data):
+    """Exibe o relatório de reputação do dominio de forma legivel"""
+    if not report_data:
+        print("\n[INFO] Este domonio não i encontrado na base de dados do VirusTotal.")
+        return
+    print("\n--- Relatório de Reputação de Domínio ---")
+    stats = report_data.get('last_analysis_stats, {}')
+    if not stats:
+        stats = {}
+    malicious = stats.get('malicious', 0)
+    suspicious = stats.get('suspicious', 0)
+    total_engines = sum(stats.values())
+
+    print(f"  Domínio Analisado: {report_data.get('id')}")
+    print(f"  Reputação (VirusTotal): {report_data.get('reputation')}")
+    print(f"\n  >> Detecções: {malicious + suspicious} / {total_engines} <<")
+
+    if malicious > 0:
+        print("  >> NÍVEL DE RISCO: ALTO (Malicioso)")
+    elif suspicious > 0:
+        print("  >> NÍVEL DE RISCO: MODERADO (Suspeito) << ")
+    else: 
+        print(" >> NÍVEL DE RISCO: BAIXO (Limpo) << ")
+
+    #Exibe as categorais atribuidas ao domínio
+    categories = report_data.get('categories', {})
+    if categories:
+        print("\n Categorais Indentificadas: ")
+        for source, category in categories.items():
+            print(f"    - {source}: {category}")
+    print("-------------------------------------------")
