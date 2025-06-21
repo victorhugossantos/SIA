@@ -1,7 +1,5 @@
 import sys
-import core.config_manager as config_manager
-import core.ip_checker as ip_checker
-import core.url_checker as url_checker
+from core import config_manager, ip_checker, virustotal_checker
 
 def main_menu(api_keys):
     """Exibe o menu principal e gerencia o fluxo da aplicação"""
@@ -11,7 +9,8 @@ def main_menu(api_keys):
         print("\nSelecione uma opção: ")
         print("  1. Verificar Reputação de IP")
         print("  2. Verificar Reputação de URL")
-        print("  3. Sair")
+        print("  3. Verificar Reputação de Hash de Arquivo")
+        print("  4. Sair")
 
         escolha = input("Opção: ").strip()
 
@@ -24,10 +23,14 @@ def main_menu(api_keys):
         elif escolha == '2':
             url_to_check = input("\nDigite a URL completa para verificar: ").strip()
             if url_to_check:
-                report = url_checker.check_url_reputation(api_keys['virustotal'], url_to_check)
+                report = virustotal_checker.check_url_reputation(api_keys['virustotal'], url_to_check)
                 if report:
-                    url_checker.display_url_report(report)
+                    virustotal_checker.display_url_report(report)
         elif escolha == '3':
+            hash_to_check = input("\nInsira o Hash (MD5, SHA1 ou SHA256) para verificar: ").strip()
+            report = virustotal_checker.check_hash_reputation(api_keys['virustotal'], hash_to_check)
+            virustotal_checker.display_hash_report(report)
+        elif escolha == '4':
             print("[INFO] Encerrando o programa. Até logo!")
             break
 
