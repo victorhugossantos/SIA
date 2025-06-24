@@ -1,5 +1,7 @@
 import requests
 from datetime import datetime
+from rich.console import Console
+from rich.table import Table
 
 #MAPEAMENTO DE IDS DE CATEGORIA PARA NOMES
 ABUSEIPDB_CATEGORIES = {
@@ -31,47 +33,50 @@ def check_ip_reputation(api_key, ip_address, max_age_in_days=90):
     return None
 
 def display_ip_report(report_data):
-    """Exibe o relatorio de reuputação do IP de forma legivel."""
+    """Exibe o relatorio de reputação do IP de forma legivel."""
     if not report_data:
         print("\n[INFO] Não foram encontrados dados para o IP especificado")
         return
     
-    print("\n--- Relatório de Inteligencia de Ameaças ---")
-    print(f"  Endereço IP: {report_data.get('ipAddress')}")
-    print(f"  Pais: {report_data.get('countryName', 'N/A')} ({report_data.get('countryCode', 'N/A')})")
-    print(f"  Provedor (ISP): {report_data.get('isp', 'N/A')}")
-    print(f"  Dominio: {report_data.get('domain', 'N/A')}")
-    print(f"  É de um IP Público?: {'Sim' if report_data.get('isPublic') else 'Não'}")
-    print(f"  É Whitelisted? {'Sim' if report_data.get('isWhitelisted') else 'Não'}")
+    console = Console()
+
+    table = Table(title=f"\n[bold blue]Relatório de Reputação de IP: {report_data.get('ipAddress')}[/bold blue]", show_header=True, header_style="bold magenta")
+    table.add_column("Propriedade", style='cyan')
+    table.add_column("Valor", style='white')
+
+    table.add_row("País", f"{report_data.get('countryName', 'N/A')} ({report_data.get('countryCode', 'N/A')})")
+    table.add_row("Provedor (ISP)", report_data.get('isp', 'N/A'))
+    table.add_row("Domínio", report_data.get('domain', 'N/A') or 'N/A')
+    table.add_row("Total de Relatórios", str(report_data.get('totalReports', 0)))
 
     # Pontuação do abuso 
     abuse_score = report_data.get('abuseConfidenceScore', 0)
     print (f"\n >> Pontuação de Abuso: {abuse_score}% <<")
     if abuse_score > 75:
-        print("  >> NÍVEL DE RISCO: ALTO <<")
+        score_style, risk_level = "bold red", "[bold red]ALTO[/bold red]"
     elif abuse_score > 25:
-        print(" >> NÍVEL DE RISCO: MODERADO <<")
+        score_style, risk_level = "bold yellow", "[bold yellow]MODERADO[/bold yellow]"
     else:
-        print(" >> NÍVEL DE RISCO: BAIXO << ")
+        score_style, risk_level = "bold green", "[bold green]BAIXO[/bold green]"
     
-    print (f"\n Total de Relatórios de Abuso: {report_data.get('totalReports', 0)}")
+    table.add_row("Pontuação de Abuso", f"[{score_style}]{abuse_score}%[/]")
+    table.add_row("Nível de Risco", risk_level)
+
+    console.print(table)
 
     # Exibe os ultimos relatorios detalhados
     recent_reports = report_data.get('reports', [])
     if recent_reports:
-        print("\n---Ultimos 5 Relatórios Detalhados ---")
-        for i, report in enumerate(recent_reports[:5]):
-            try:
-                reported_at = datetime.strptime(report['reportedAt'], "%Y-%m-%dT%H:%M:%S%z")
-                print(f"\n  Relatório #{i+1}")
-                print(f"    Data: {reported_at.strftime('%d/%m/%Y %H:%M:%S')}")
-                print(f"    Comentário: \"{report['comment']}\"")
+       details_table = Table(title="[bold blue] Últimos Relatórios Detalhados [/bold blue]", show_header=True, header_style="bold magenta")
+       details_table.add_column("Data", style='cyan')
+       details_table.add_column("Comentário", style='white')
+       details_table.add_column("Categorias", style="yellow")
 
-                category_ids = report.get('categories', [])
-                category_names = [ABUSEIPDB_CATEGORIES.get(cat_id, f"Desconhecida ({cat_id})") for cat_id in category_ids]
-                print(f"    Categorias: {category_names}")
-            except (KeyError, ValueError) as e:
-                print(f"    [AVISO] Não foi possivel processar um relatório detalhado: {e}")
-        print("\n-------------------------------------------")
-    else: 
-        print("\n-------------------------------------------")
+       for report in recent_reports[:5]:
+            reported_at = datetime.strptime(report['reportedAt'], "%Y-%m-%dT%H:%M:%S%z").strftime('%d/%m/%Y %H:%M:%S')
+            comment = report.get('comment', '')
+            category_ids = report.get('categories', [])
+            category_names = ", ".join([ABUSEIPDB_CATEGORIES.get(cat_id, f"ID {cat_id}") for cat_id in category_ids])
+            details_table.add_row(reported_at, comment, category_names)
+    
+    console.print(details_table)
